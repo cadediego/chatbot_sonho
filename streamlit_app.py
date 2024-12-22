@@ -1,9 +1,9 @@
 import streamlit as st
-from openai import OpenAI
+import openai  # Use openai diretamente, não a classe OpenAI
 import os
 
 # Configuração da chave da API
-default_api_key =st.secrets["CHATGPT"]  # A chave da API deve estar na variável de ambiente OPENAI_API_KEY
+default_api_key = st.secrets["CHATGPT"]  # A chave da API deve estar na variável de ambiente
 
 # Títulos e descrição
 st.title("💭 Descubra o significado do seu sonho")
@@ -12,10 +12,8 @@ st.write(
     "Descreva seu sonho para descobrir o que ele pode revelar!"
 )
 
-st.write("api: "+ str(default_api_key))
-
-
-client = OpenAI(api_key=default_api_key)
+# Defina a chave da API do OpenAI
+openai.api_key = default_api_key
 
 # Inicializar mensagens na sessão
 if "messages" not in st.session_state:
@@ -45,7 +43,7 @@ if sonho := st.chat_input("Descreva o seu sonho aqui..."):
     try:
         # Chamar a API da OpenAI
         # Usa a chave da API inserida ou a padrão
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",  # ou "gpt-4" dependendo da sua chave de API
             messages=[
                 {"role": "system", "content": "Você é um especialista em interpretação de sonhos."},
@@ -55,7 +53,7 @@ if sonho := st.chat_input("Descreva o seu sonho aqui..."):
         )
 
         # Processar a resposta
-        resposta = response['choices'][0]['message']['content']  # Correção na extração da resposta
+        resposta = response['choices'][0]['message']['content']  # A correção para acessar a resposta
 
         # Adicionar a resposta ao histórico
         st.session_state.messages.append({"role": "assistant", "content": resposta})
