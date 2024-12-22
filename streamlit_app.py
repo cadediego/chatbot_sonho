@@ -3,7 +3,7 @@ from openai import OpenAI
 import os
 
 # Configuração da chave da API
-default_api_key = os.getenv("CHATGPT")  # A chave da API deve estar na variável de ambiente OPENAI_API_KEY
+default_api_key =st.secrets["CHATGPT"]  # A chave da API deve estar na variável de ambiente OPENAI_API_KEY
 
 # Títulos e descrição
 st.title("💭 Descubra o significado do seu sonho")
