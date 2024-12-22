@@ -1,56 +1,66 @@
 import streamlit as st
 from openai import OpenAI
+import os
 
-# Show title and description.
-st.title("💬 Chatbot")
+# Configuração da chave da API
+default_api_key = os.getenv("CHATGPT")  # A chave da API deve estar na variável de ambiente OPENAI_API_KEY
+
+# Títulos e descrição
+st.title("💭 Descubra o significado do seu sonho")
 st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
+    "Traição, perseguição, morte, casamento... Sonhos podem ter significados profundos. "
+    "Descreva seu sonho para descobrir o que ele pode revelar!"
 )
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+st.write("api: "+ str(default_api_key))
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
 
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+client = OpenAI(api_key=default_api_key)
 
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+# Inicializar mensagens na sessão
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
+# Exibir histórico de mensagens
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+# Campo de entrada para o sonho
+if sonho := st.chat_input("Descreva o seu sonho aqui..."):
+    # Adicionar o sonho ao histórico
+    st.session_state.messages.append({"role": "user", "content": sonho})
+    with st.chat_message("user"):
+        st.markdown(sonho)
 
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+    # Criar o prompt para a API
+    prompt = f"""
+    Você é um especialista em interpretação de sonhos. Receberá um texto descrevendo um sonho e deverá identificar os temas principais relacionados, como gravidez, traição, perseguição, morte, ou outros temas relevantes.
+    Analise o sonho detalhadamente.
+    Identifique os temas centrais do sonho.
+    Explique brevemente por que esses temas são relevantes com base na descrição fornecida.
+    Aqui está o sonho: {sonho}
+    """
+
+    try:
+        # Chamar a API da OpenAI
+        # Usa a chave da API inserida ou a padrão
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",  # ou "gpt-4" dependendo da sua chave de API
             messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
+                {"role": "system", "content": "Você é um especialista em interpretação de sonhos."},
+                {"role": "user", "content": prompt},
             ],
-            stream=True,
+            temperature=0.7,  # Ajuste a criatividade
         )
 
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
+        # Processar a resposta
+        resposta = response['choices'][0]['message']['content']  # Correção na extração da resposta
+
+        # Adicionar a resposta ao histórico
+        st.session_state.messages.append({"role": "assistant", "content": resposta})
         with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+            st.markdown(resposta)
+
+    except Exception as e:
+        st.error(f"Erro ao se conectar à API: {e}")
