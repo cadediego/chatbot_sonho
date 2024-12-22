@@ -1,9 +1,9 @@
 import streamlit as st
-import openai  # Use openai diretamente, não a classe OpenAI
+from openai import OpenAI
 import os
 
 # Configuração da chave da API
-default_api_key = st.secrets["CHATGPT"]  # A chave da API deve estar na variável de ambiente
+default_api_key =st.secrets["CHATGPT"]  # A chave da API deve estar na variável de ambiente OPENAI_API_KEY
 
 # Títulos e descrição
 st.title("💭 Descubra o significado do seu sonho")
@@ -12,8 +12,8 @@ st.write(
     "Descreva seu sonho para descobrir o que ele pode revelar!"
 )
 
-# Defina a chave da API do OpenAI
-openai.api_key = default_api_key
+
+client = OpenAI(api_key=default_api_key)
 
 # Inicializar mensagens na sessão
 if "messages" not in st.session_state:
@@ -32,28 +32,28 @@ if sonho := st.chat_input("Descreva o seu sonho aqui..."):
         st.markdown(sonho)
 
     # Criar o prompt para a API
-    prompt = f"""
+    prompt = """
     Você é um especialista em interpretação de sonhos. Receberá um texto descrevendo um sonho e deverá identificar os temas principais relacionados, como gravidez, traição, perseguição, morte, ou outros temas relevantes.
     Analise o sonho detalhadamente.
     Identifique os temas centrais do sonho.
     Explique brevemente por que esses temas são relevantes com base na descrição fornecida.
-    Aqui está o sonho: {sonho}
+
     """
 
     try:
         # Chamar a API da OpenAI
         # Usa a chave da API inserida ou a padrão
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",  # ou "gpt-4" dependendo da sua chave de API
             messages=[
-                {"role": "system", "content": "Você é um especialista em interpretação de sonhos."},
-                {"role": "user", "content": prompt},
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": sonho},
             ],
             temperature=0.7,  # Ajuste a criatividade
         )
 
         # Processar a resposta
-        resposta = response['choices'][0]['message']['content']  # A correção para acessar a resposta
+        resposta = response['choices'][0]['message']['content']  # Correção na extração da resposta
 
         # Adicionar a resposta ao histórico
         st.session_state.messages.append({"role": "assistant", "content": resposta})
