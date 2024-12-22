@@ -53,7 +53,7 @@ if sonho := st.chat_input("Descreva o seu sonho aqui..."):
         )
 
         # Processar a resposta
-        resposta = response['choices'][0]['message']['content']  # Correção na extração da resposta
+        resposta = response.choices[0].message.content  # Correção na extração da resposta
 
         # Adicionar a resposta ao histórico
         st.session_state.messages.append({"role": "assistant", "content": resposta})
