@@ -8,7 +8,7 @@ default_api_key =st.secrets["CHATGPT"]  # A chave da API deve estar na variável
 # Títulos e descrição
 st.title("💭 Descubra o significado do seu sonho")
 st.write(
-    "Traição, perseguição, morte, casamento... Sonhos podem ter significados profundos. "
+    "Traição, perseguição, morte, casamento, gravidez, caindo, bicho... Sonhos podem ter significados profundos. "
     "Descreva seu sonho para descobrir o que ele pode revelar!"
 )
 
